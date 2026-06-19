@@ -1,0 +1,23 @@
+{
+    "Group": "com.oruuke",
+    "Name": "pillow",
+    "Version": "0.0.1",
+    "Description": "pillow",
+    "Authors": [
+        {
+            "Name": "oruuke"
+        }
+    ],
+    "Website": "https://github.com/oruuke/pillow",
+    "ServerVersion": ">=0.5.6 <0.6.0",
+    "Dependencies": {
+        "Hytale:AssetModule": "*"
+    },
+    "OptionalDependencies": {},
+    "DisabledByDefault": false,
+    "Main": "com.oruuke.pillow.Pillow",
+    "IncludesAssetPack": true,
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}
