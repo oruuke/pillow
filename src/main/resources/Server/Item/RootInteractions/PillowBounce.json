@@ -1,0 +1,15 @@
+{
+  "Interactions": [
+    {
+      "Type": "ApplyForce",
+      "Forces": [
+        {
+          "Direction": {
+            "Y": 15
+          },
+          "Force": 15
+        }
+      ]
+    }
+  ]
+}
