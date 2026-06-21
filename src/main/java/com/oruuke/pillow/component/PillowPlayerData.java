@@ -30,7 +30,7 @@ public class PillowPlayerData implements Component<EntityStore> {
         return this.velocityDelta;
     }
     public void setPillowPlayerData(Vector3d velocityDelta) {
-        this.velocityDelta = new Vector3d((double)0.0F, (double)0.0F, (double)0.0F);
+        this.velocityDelta = velocityDelta;
     }
 
     // constructor

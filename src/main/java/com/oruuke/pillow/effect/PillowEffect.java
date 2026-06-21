@@ -89,7 +89,7 @@ public class PillowEffect extends TriggerEffect {
             resolvedVelocity.add(data.getPillowPlayerData(), newDelta);
             velocityComponent.addInstruction(newDelta, null, ChangeVelocityType.Set);
             data.setPillowPlayerData(newDelta);
-            LOGGER.at(Level.INFO).log("accumulative delta: %s", newDelta);
+            LOGGER.at(Level.INFO).log("accumulative delta: %s", newDelta.y);
         } else {
             velocityComponent.addInstruction(resolvedVelocity, null, ChangeVelocityType.Set);
         }
