@@ -120,7 +120,9 @@ public class SetPillowEffect extends TriggerEffect {
         if (resolved == 0.0) {
             return player;
         }
-        return resolved + Math.copySign(Math.abs(player), resolved);
+        // ensure new direction is used and clamped at 256 velocity
+        double result = resolved + Math.copySign(Math.abs(player), resolved);
+        return Math.min(result, 256.0);
     }
 
     // determine new velocity
