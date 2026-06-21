@@ -1,0 +1,18 @@
+{
+  "Effects": [
+    {
+      "Type": "SetPillow",
+      "Event": "ENTER",
+      "Velocity": { "X": 0.0, "Y": -10.0, "Z": 0.0 },
+      "Accumulative": true
+    },
+    {
+      "Type": "PlaySound",
+      "Event": "ENTER",
+      "SoundEvent": "SFX_Kweebec_Plushie_Impact",
+      "Volume": 1.0,
+      "Pitch": 1.5
+    }
+  ],
+  "TargetTypes": ["Player"]
+}

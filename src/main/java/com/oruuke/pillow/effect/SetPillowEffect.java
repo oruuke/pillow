@@ -25,7 +25,8 @@ import org.joml.Vector3d;
 
 import java.util.logging.Level;
 
-public class PillowEffect extends TriggerEffect {
+// accumulative and reset access for player velocity via stored delta
+public class SetPillowEffect extends TriggerEffect {
     public static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private Vector3d velocity = new Vector3d((double)0.0F, (double)0.0F, (double)0.0F);
     private boolean accumulative = false;
@@ -33,11 +34,13 @@ public class PillowEffect extends TriggerEffect {
     @Nonnull
     private RelativeMode relativeMode;
 
-    public PillowEffect() {
-        this.relativeMode = PillowEffect.RelativeMode.ABSOLUTE;
+    // default to absolute jus makes sense
+    public SetPillowEffect() {
+        this.relativeMode = SetPillowEffect.RelativeMode.ABSOLUTE;
     }
 
-    public static final BuilderCodec<PillowEffect> CODEC = BuilderCodec.builder(PillowEffect.class, PillowEffect::new, BASE_CODEC)
+    // declare trigger volume form fields
+    public static final BuilderCodec<SetPillowEffect> CODEC = BuilderCodec.builder(SetPillowEffect.class, SetPillowEffect::new, BASE_CODEC)
             .append(
                     new KeyedCodec<>("Velocity", Vector3dUtil.CODEC),
                     (e, v) -> e.velocity = v,
@@ -55,68 +58,97 @@ public class PillowEffect extends TriggerEffect {
             ).add()
             .build();
 
+    // relative mode options
     public enum RelativeMode {
         ABSOLUTE,
         HORIZONTAL_FACING,
         FULL_LOOK
     }
 
+    // effect thingy
     @Nonnull
-    public static PillowEffect create(@Nonnull TriggerEventType eventType, @Nonnull Vector3d velocity, boolean accumulative) {
-        var effect = new PillowEffect();
+    public static SetPillowEffect create(@Nonnull TriggerEventType eventType, @Nonnull Vector3d velocity, boolean accumulative) {
+        var effect = new SetPillowEffect();
         effect.setEventType(eventType);
         effect.velocity = velocity;
         effect.accumulative = accumulative;
         return effect;
     }
 
+    // core velocity execution
     @Override
     public void execute(@Nonnull TriggerContext context) {
         if (velocity == null) return;
 
+        // pull out context data
         var entityRef = context.getEntityRef();
         var store = context.getStore();
         PillowPlayerData data = store.ensureAndGetComponent(entityRef, Pillow.instance().getPillowPlayerDataComponent());
 
+        // setup component
         var velocityComponent = store.getComponent(entityRef, Velocity.getComponentType());
         if (velocityComponent==null) return;
 
+        // determine new velocity
         var resolvedVelocity = resolveVelocity(context);
         if (resolvedVelocity == null) return;
 
+        // increase delta for player across all pillow volumes
         if (accumulative) {
-            Vector3d newDelta = new Vector3d();
-            resolvedVelocity.add(data.getPillowPlayerData(), newDelta);
+            // calculate onto blank vector for clarity
+            Vector3d playerVelocity = data.getPillowPlayerData();
+            Vector3d newDelta = new Vector3d(
+                    accumulateAxis(playerVelocity.x, resolvedVelocity.x),
+                    accumulateAxis(playerVelocity.y, resolvedVelocity.y),
+                    accumulateAxis(playerVelocity.z, resolvedVelocity.z)
+            );
+            // send to volume and store on player
             velocityComponent.addInstruction(newDelta, null, ChangeVelocityType.Set);
             data.setPillowPlayerData(newDelta);
-            LOGGER.at(Level.INFO).log("accumulative delta: %s", newDelta.y);
-        } else {
+            // log all total deltas
+            LOGGER.at(Level.INFO).log("x: %s, y: %s, z: %s", newDelta.x, newDelta.y, newDelta.z);
+        }
+        // set new delta for player
+        else {
             velocityComponent.addInstruction(resolvedVelocity, null, ChangeVelocityType.Set);
+            data.setPillowPlayerData(resolvedVelocity);
         }
     }
 
+    // compute each player velocity under the same direction as resolved
+    private static double accumulateAxis(double player, double resolved) {
+        if (resolved == 0.0) {
+            return player;
+        }
+        return resolved + Math.copySign(Math.abs(player), resolved);
+    }
+
+    // determine new velocity
     @Nullable
     private Vector3d resolveVelocity(@Nonnull TriggerContext context) {
 
+        // mode stuff
         var mode = relativeMode != null ? relativeMode : RelativeMode.ABSOLUTE;
         if (mode == RelativeMode.ABSOLUTE) {
             return new Vector3d(velocity);
         }
 
+        // rotation funni business
         var rotation = getLookRotation(context);
         if (rotation == null) return null;
 
+        // wotever the heck dis is
         if (mode == RelativeMode.HORIZONTAL_FACING) {
             var horizontal = new Rotation3f(0, rotation.yaw(), 0).transform(new Vector3d(velocity.x, 0, velocity.z));
             horizontal.y = velocity.y;
             return horizontal;
         }
 
-
-
+        // i cast: resolve dammit!
         return rotation.transform(new Vector3d(velocity));
     }
 
+    // more rotation spinny magic
     @Nullable
     private static Rotation3fc getLookRotation(@Nonnull TriggerContext context) {
         var store = context.getStore();

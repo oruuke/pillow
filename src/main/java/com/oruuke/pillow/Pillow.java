@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.oruuke.pillow.command.PillowEnterInstanceCommand;
 import com.oruuke.pillow.component.PillowPlayerData;
-import com.oruuke.pillow.effect.PillowEffect;
+import com.oruuke.pillow.effect.SetPillowEffect;
 
 import java.util.logging.Level;
 
@@ -35,7 +35,7 @@ public class Pillow extends JavaPlugin {
     protected void setup() {
         LOGGER.at(Level.INFO).log("Setting up Pillow!");
         this.getCommandRegistry().registerCommand(new PillowEnterInstanceCommand());
-        TriggerEffect.CODEC.register("PillowEffect", PillowEffect.class, PillowEffect.CODEC);
+        TriggerEffect.CODEC.register("SetPillow", SetPillowEffect.class, SetPillowEffect.CODEC);
         this.pillowPlayerDataComponent = this.getEntityStoreRegistry().registerComponent(
                 PillowPlayerData.class,
                 "PillowPlayerDataComponent",
